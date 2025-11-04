@@ -403,7 +403,7 @@ function PracticeSessionPageContent() {
                         : showAnswer && !isCorrect
                         ? 'bg-red-50 border-red-500 text-red-900'
                         : 'bg-purple-50 border-purple-500 text-purple-900'
-                      : 'bg-gray-50 border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                      : 'bg-gray-50 border-gray-200 hover:border-purple-300 hover:bg-purple-50 text-gray-900'
                   } ${isComplete ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <div className="flex items-center gap-3">
@@ -416,7 +416,7 @@ function PracticeSessionPageContent() {
                     >
                       {String.fromCharCode(65 + index)}
                     </div>
-                    <span className="flex-1">{option}</span>
+                    <span className="flex-1 text-gray-900 font-medium">{option}</span>
                     {showAnswer && isCorrect && (
                       <CheckCircleIcon className="w-6 h-6 text-green-600" />
                     )}

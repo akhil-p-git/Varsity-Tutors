@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { StudyPresence } from "@/app/components/StudyPresence";
 import { Navigation } from "@/app/components/Navigation";
 import { AgentDebugger } from "@/app/components/AgentDebugger";
+import { AgentDecisionLog } from "@/app/components/AgentDecisionLog";
 import { DemoControls } from "@/app/components/DemoControls";
 import { DemoRunner } from "@/app/components/DemoRunner";
 import { DemoPlaybackControls } from "@/app/components/DemoPlaybackControls";
@@ -34,6 +35,7 @@ export default function RootLayout({
           {children}
           <StudyPresence />
           <AgentDebugger />
+          <AgentDecisionLog />
           <DemoRunner />
           <DemoPlaybackControls />
           {process.env.NODE_ENV === 'development' && <DemoControls />}

@@ -22,6 +22,7 @@ import { getRoomsBySubject } from '@/lib/data/mock-rooms';
 import { selectViralLoop, shouldTrigger } from '@/lib/agents/orchestrator';
 import { logAgentDecision } from '@/app/components/AgentDebugger';
 import { trackFunnelEvent } from '@/lib/smart-links';
+import { SessionInsights } from '@/lib/ai/openai-service';
 
 export default function SessionResultsPage() {
   const params = useParams();
@@ -38,6 +39,13 @@ export default function SessionResultsPage() {
   });
   const [showConfetti, setShowConfetti] = useState(true);
   const [showBuddyChallenge, setShowBuddyChallenge] = useState(false);
+  const [aiInsights, setAiInsights] = useState<SessionInsights | null>(null);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiDecision, setAiDecision] = useState<{
+    loopType: string | null;
+    reasoning: string;
+    confidence: number;
+  } | null>(null);
   const hasTrackedRef = useRef(false);
 
   const subjectFriends = session
@@ -67,34 +75,84 @@ export default function SessionResultsPage() {
       // Trigger confetti on mount
       setTimeout(() => setShowConfetti(false), 3000);
 
-      // Agent decision: Check if should trigger buddy challenge
+      // AI Agent analysis and orchestration
       // Only track once per session
       if (user && session && !hasTrackedRef.current) {
         hasTrackedRef.current = true;
-        const accuracy = Math.round((session.correctAnswers / session.questionsAnswered) * 100);
-        const decision = shouldTrigger(user.id, 'buddy_challenge', 'session_completed');
-        const loopType = selectViralLoop('session_completed', {
-          userId: user.id,
-          event: 'session_completed',
-          data: { score: accuracy },
+        
+        // Trigger AI analysis
+        setAiAnalyzing(true);
+        
+        // Run AI analysis and orchestration in parallel via API routes
+        Promise.all([
+          fetch('/api/ai/analyze-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(session),
+          }).then(res => res.json()).then(data => data.insights),
+          fetch('/api/ai/orchestrate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'session_completed',
+              userContext: {
+                userId: user.id,
+                role: user.role,
+                name: user.name,
+                streak: rewards.streak,
+              },
+              sessionData: session,
+            }),
+          }).then(res => res.json()).then(data => data.result),
+        ]).then(([insights, orchestration]) => {
+          setAiInsights(insights);
+          setAiDecision({
+            loopType: orchestration.loopType || null,
+            reasoning: orchestration.reasoning,
+            confidence: orchestration.confidence,
+          });
+          setAiAnalyzing(false);
+
+          // Log AI decision
+          if (orchestration.shouldTrigger && orchestration.loopType) {
+            logAgentDecision({
+              timestamp: new Date(),
+              agent: 'AI Orchestrator',
+              action: `AI Recommended: ${orchestration.loopType}`,
+              reason: orchestration.reasoning,
+              status: 'triggered',
+            });
+
+            // Track funnel: session_completed (only once)
+            const accuracy = Math.round((session.correctAnswers / session.questionsAnswered) * 100);
+            trackFunnelEvent('session_completed', {
+              sessionId: session.sessionId,
+              score: accuracy,
+              subject: session.subject,
+            });
+          }
+        }).catch((error) => {
+          console.error('AI analysis error:', error);
+          setAiAnalyzing(false);
+          // Fallback to rule-based logic
+          const accuracy = Math.round((session.correctAnswers / session.questionsAnswered) * 100);
+          const decision = shouldTrigger(user.id, 'buddy_challenge', 'session_completed');
+          const loopType = selectViralLoop('session_completed', {
+            userId: user.id,
+            event: 'session_completed',
+            data: { score: accuracy },
+          });
+
+          if (decision.shouldTrigger && loopType) {
+            logAgentDecision({
+              timestamp: new Date(),
+              agent: 'Fallback Orchestrator',
+              action: `Triggered: ${loopType}`,
+              reason: `Score ${accuracy}% > 70% threshold ✓, Daily limit not reached ✓`,
+              status: 'triggered',
+            });
+          }
         });
-
-        if (decision.shouldTrigger && loopType) {
-          logAgentDecision({
-            timestamp: new Date(),
-            agent: 'Orchestrator',
-            action: `Triggered: ${loopType}`,
-            reason: `Score ${accuracy}% > 70% threshold ✓, Daily limit not reached ✓`,
-            status: 'triggered',
-          });
-
-          // Track funnel: session_completed (only once)
-          trackFunnelEvent('session_completed', {
-            sessionId: session.sessionId,
-            score: accuracy,
-            subject: session.subject,
-          });
-        }
       }
     }
   }, [session, router, user]);
@@ -218,6 +276,86 @@ export default function SessionResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* AI Agent Decision Box */}
+        {aiDecision && (
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-6 mb-6 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <SparklesIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xl font-bold mb-2">🤖 AI Agent Decision</div>
+                  <div className="text-sm text-white/90 bg-white/10 rounded-lg p-3 mb-3">
+                    <div className="font-semibold mb-1">Recommendation:</div>
+                    <div>{aiDecision.loopType ? `Trigger ${aiDecision.loopType.replace('_', ' ')}` : 'No action recommended'}</div>
+                    <div className="font-semibold mt-2 mb-1">Reasoning:</div>
+                    <div className="text-xs">{aiDecision.reasoning}</div>
+                    <div className="mt-2 text-xs opacity-75">Confidence: {aiDecision.confidence}%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Analysis Section */}
+        {aiAnalyzing ? (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <SparklesIcon className="w-6 h-6 text-purple-600 animate-pulse" />
+              <h3 className="text-xl font-bold text-gray-900">AI Analyzing Session...</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded-full animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded-full animate-pulse w-3/4" />
+              <div className="h-4 bg-gray-200 rounded-full animate-pulse w-1/2" />
+            </div>
+          </div>
+        ) : aiInsights ? (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <SparklesIcon className="w-6 h-6 text-purple-600" />
+              <h3 className="text-xl font-bold text-gray-900">AI Session Analysis</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-2">✅ Strengths</h4>
+                <ul className="text-sm text-green-800 space-y-1">
+                  {aiInsights.strengths.map((strength, idx) => (
+                    <li key={idx}>• {strength}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                <h4 className="font-semibold text-amber-900 mb-2">📊 Areas to Improve</h4>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  {aiInsights.gaps.map((gap, idx) => (
+                    <li key={idx}>• {gap}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">💡 Recommendations</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  {aiInsights.recommendations.map((rec, idx) => (
+                    <li key={idx}>• {rec}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-50 to-teal-50 rounded-xl p-4 border border-purple-200">
+              <div className="text-sm font-semibold text-gray-900 mb-1">🎯 Achievement Summary</div>
+              <div className="text-gray-700">{aiInsights.achievementSummary}</div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Voice Room CTA */}
         {(() => {

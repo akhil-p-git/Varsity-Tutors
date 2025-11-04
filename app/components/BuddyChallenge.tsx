@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { XMarkIcon, LinkIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { XMarkIcon, LinkIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon } from '@heroicons/react/24/solid';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth-context';
 import { generateChallengeLink, trackFunnelEvent } from '@/lib/smart-links';
 import { getFriendsBySubject, getOnlineFriends } from '@/lib/data/mock-friends';
 import { selectViralLoop, shouldTrigger } from '@/lib/agents/orchestrator';
-import { personalizeMessage } from '@/lib/agents/personalization';
+import { PersonalizationContext } from '@/lib/ai/openai-service';
 import { logAgentDecision } from '@/app/components/AgentDebugger';
 import { toast } from 'sonner';
 import { Session } from '@/lib/types';
@@ -24,6 +25,58 @@ export function BuddyChallenge({ isOpen, onClose, session }: BuddyChallengeProps
   const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
   const [customMessage, setCustomMessage] = useState('');
   const [showLinkCopied, setShowLinkCopied] = useState(false);
+  const [aiPersonalizing, setAiPersonalizing] = useState(false);
+  const [aiMessage, setAiMessage] = useState<string | null>(null);
+
+  // Generate AI message when friend is selected
+  useEffect(() => {
+    if (selectedFriendId && user && session && !aiMessage && !aiPersonalizing) {
+      const selectedFriend = friends.find(f => f.id === selectedFriendId);
+      if (selectedFriend) {
+        setAiPersonalizing(true);
+        const accuracy = Math.round((session.correctAnswers / session.questionsAnswered) * 100);
+        
+        // Get time of day
+        const hour = new Date().getHours();
+        const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+        
+        // Call API route for personalization
+        const context: PersonalizationContext = {
+          sender: {
+            name: user.name,
+            role: user.role,
+            streak: useStore.getState().rewards.streak,
+          },
+          recipient: {
+            name: selectedFriend.name,
+            role: 'student',
+          },
+          loopType: 'buddy_challenge',
+          sessionData: {
+            subject: session.subject,
+            score: accuracy,
+            skillsImproved: session.skillsImproved || [],
+          },
+          timeOfDay,
+        };
+        
+        fetch('/api/ai/personalize-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(context),
+        })
+          .then(res => res.json())
+          .then(data => {
+            setAiMessage(data.message || null);
+            setAiPersonalizing(false);
+          })
+          .catch((error) => {
+            console.error('Error personalizing message:', error);
+            setAiPersonalizing(false);
+          });
+      }
+    }
+  }, [selectedFriendId, user, session, friends, aiMessage, aiPersonalizing]);
 
   if (!isOpen || !user || !session) return null;
 
@@ -66,13 +119,8 @@ export function BuddyChallenge({ isOpen, onClose, session }: BuddyChallengeProps
       status: 'triggered',
     });
 
-    // Personalize message
-    const personalizedMsg = personalizeMessage('buddy_challenge', {
-      user,
-      subject: session.subject,
-      score: accuracy,
-      performanceLevel: accuracy >= 80 ? 'high' : accuracy >= 60 ? 'medium' : 'low',
-    });
+    // Use AI-generated message if available, otherwise fallback
+    const personalizedMsg = aiMessage || `Hey! I just scored ${accuracy}% on ${session.subject}. Think you can beat that? 🎯`;
 
     // Create invite link
     const inviteLink = generateChallengeLink(
@@ -114,7 +162,7 @@ export function BuddyChallenge({ isOpen, onClose, session }: BuddyChallengeProps
           senderId: user.id,
           senderName: user.name,
           subject: session.subject,
-          message: customMessage || personalizedMsg,
+          message: customMessage || aiMessage || personalizedMsg,
         }),
       });
     } catch (error) {
@@ -299,15 +347,38 @@ export function BuddyChallenge({ isOpen, onClose, session }: BuddyChallengeProps
               )}
             </div>
 
+            {/* AI-Generated Message */}
+            {aiPersonalizing ? (
+              <div className="mt-4 bg-indigo-50 rounded-xl p-4 border border-indigo-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <SparklesIcon className="w-5 h-5 text-indigo-600 animate-pulse" />
+                  <span className="text-sm font-semibold text-indigo-900">AI Personalizing Message...</span>
+                </div>
+                <div className="h-4 bg-indigo-200 rounded animate-pulse" />
+              </div>
+            ) : aiMessage ? (
+              <div className="mt-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border border-purple-200">
+                <div className="flex items-start gap-2 mb-2">
+                  <SparklesIcon className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-purple-900 mb-1">✨ AI-Generated Message</div>
+                    <div className="text-sm text-gray-800 bg-white rounded-lg p-2 border border-purple-200">
+                      "{aiMessage}"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             {/* Custom Message */}
-            <div>
+            <div className="mt-4">
               <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Custom message (optional)
+                Custom message (optional, overrides AI)
               </label>
               <textarea
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
-                placeholder="Add a personal message..."
+                placeholder={aiMessage || "Add a personal message..."}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 rows={3}
               />
