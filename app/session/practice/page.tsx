@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useStore } from '@/lib/store';
 import { awardGems, checkStreak, checkLevelUp, REWARD_AMOUNTS } from '@/lib/rewards';
@@ -49,13 +49,90 @@ const mockQuestions: Question[] = [
     options: ['2x + 2', '2x + 6', '2x - 1', '2x + 10'],
     correctAnswer: 0,
   },
+  {
+    id: 6,
+    question: 'What is the solution to 5x - 10 = 20?',
+    options: ['x = 6', 'x = 2', 'x = 10', 'x = 30'],
+    correctAnswer: 0,
+  },
+  {
+    id: 7,
+    question: 'What is the slope of the line passing through (2, 3) and (4, 7)?',
+    options: ['2', '1', '4', '3'],
+    correctAnswer: 0,
+  },
+  {
+    id: 8,
+    question: 'Solve for x: x/2 + 5 = 10',
+    options: ['x = 5', 'x = 10', 'x = 15', 'x = 20'],
+    correctAnswer: 1,
+  },
+  {
+    id: 9,
+    question: 'What is the x-intercept of y = 4x - 12?',
+    options: ['x = 3', 'x = 4', 'x = 12', 'x = -3'],
+    correctAnswer: 0,
+  },
+  {
+    id: 10,
+    question: 'Factor: x² - 9',
+    options: ['(x - 3)(x + 3)', '(x - 9)(x + 1)', '(x - 3)²', '(x + 3)²'],
+    correctAnswer: 0,
+  },
+  {
+    id: 11,
+    question: 'What is the solution to 4x + 8 = 2x + 16?',
+    options: ['x = 4', 'x = 2', 'x = 8', 'x = 12'],
+    correctAnswer: 0,
+  },
+  {
+    id: 12,
+    question: 'What is the equation of a line with slope 2 and y-intercept -3?',
+    options: ['y = 2x - 3', 'y = 2x + 3', 'y = -2x - 3', 'y = 3x - 2'],
+    correctAnswer: 0,
+  },
+  {
+    id: 13,
+    question: 'Solve for x: 6x + 12 = 3x + 30',
+    options: ['x = 6', 'x = 4', 'x = 8', 'x = 10'],
+    correctAnswer: 0,
+  },
+  {
+    id: 14,
+    question: 'What is the solution to 2(x - 4) = 10?',
+    options: ['x = 9', 'x = 7', 'x = 5', 'x = 3'],
+    correctAnswer: 0,
+  },
+  {
+    id: 15,
+    question: 'What is the slope of y = -5x + 7?',
+    options: ['-5', '5', '7', '-7'],
+    correctAnswer: 0,
+  },
 ];
+
+// Shuffle questions for variety
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Get a random subset of questions
+function getRandomQuestions(count: number = 5): Question[] {
+  const shuffled = shuffleArray(mockQuestions);
+  return shuffled.slice(0, count);
+}
 
 function PracticeSessionPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const { addSession, completeInvite, completeInviteByCode, updateRewards, rewards } = useStore();
+  const [questions, setQuestions] = useState<Question[]>(() => getRandomQuestions(5));
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
@@ -64,6 +141,13 @@ function PracticeSessionPageContent() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [pendingRewards, setPendingRewards] = useState<{
+    sessionId: string;
+    correctAnswers: number;
+    previousPoints: number;
+    previousStreak: number;
+  } | null>(null);
+  const hasProcessedRewardsRef = useRef(false);
 
   const subject = searchParams.get('subject') || 'Algebra';
   const invite = searchParams.get('invite');
@@ -83,7 +167,10 @@ function PracticeSessionPageContent() {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleSubmit();
+          // Use setTimeout to avoid calling handleSubmit during render
+          setTimeout(() => {
+            handleSubmit();
+          }, 0);
           return 0;
         }
         return prev - 1;
@@ -93,6 +180,42 @@ function PracticeSessionPageContent() {
     return () => clearInterval(timer);
   }, [isAuthenticated, router, invite]);
 
+  // Process rewards in useEffect to avoid updating state during render
+  useEffect(() => {
+    if (!pendingRewards || !user || hasProcessedRewardsRef.current) return;
+
+    hasProcessedRewardsRef.current = true;
+
+    // Use setTimeout to ensure this runs after render
+    setTimeout(() => {
+      const { correctAnswers, previousPoints, previousStreak } = pendingRewards;
+      
+      // Update points
+      updateRewards({
+        points: rewards.points + correctAnswers * 10,
+        streak: rewards.streak + 1, // Increment streak
+      });
+
+      // Award session completion gems
+      const sessionReward = awardGems(user.id, REWARD_AMOUNTS.sessionComplete, 'Session completed!');
+      showRewardNotification(sessionReward);
+
+      // Check for streak milestone (only once)
+      const newStreak = previousStreak + 1;
+      const streakReward = checkStreak(user.id, newStreak);
+      if (streakReward) {
+        showRewardNotification(streakReward);
+      }
+
+      // Check for level up
+      const newPoints = rewards.points + correctAnswers * 10;
+      const levelUpReward = checkLevelUp(user.id, previousPoints, newPoints);
+      if (levelUpReward) {
+        showRewardNotification(levelUpReward);
+      }
+    }, 0);
+  }, [pendingRewards, user, rewards, updateRewards]);
+
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex);
     const newAnswers = [...answers];
@@ -101,11 +224,14 @@ function PracticeSessionPageContent() {
   };
 
   const handleNext = () => {
-    if (currentQuestion < mockQuestions.length - 1) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(answers[currentQuestion + 1] ?? null);
     } else {
-      handleSubmit();
+      // Use setTimeout to avoid calling handleSubmit during render
+      setTimeout(() => {
+        handleSubmit();
+      }, 0);
     }
   };
 
@@ -116,7 +242,7 @@ function PracticeSessionPageContent() {
     
     // Calculate score
     let correctAnswers = 0;
-    mockQuestions.forEach((question, index) => {
+    questions.forEach((question, index) => {
       if (answers[index] === question.correctAnswer) {
         correctAnswers++;
       }
@@ -128,7 +254,7 @@ function PracticeSessionPageContent() {
       sessionId,
       subject,
       duration: Math.floor((120 - timeLeft) / 60),
-      questionsAnswered: mockQuestions.length,
+      questionsAnswered: questions.length,
       correctAnswers,
       skillsImproved: correctAnswers >= 4 
         ? ['Linear Equations', 'Graphing', 'Problem Solving']
@@ -140,53 +266,39 @@ function PracticeSessionPageContent() {
 
     addSession(newSession);
 
-    // Award session completion reward
+    // Store reward data for processing in useEffect (prevents React state update during render)
     const previousPoints = rewards.points;
     const previousStreak = rewards.streak;
-    
-    // Update points
-    updateRewards({
-      points: rewards.points + correctAnswers * 10,
-      streak: rewards.streak + 1, // Increment streak
+    setPendingRewards({
+      sessionId,
+      correctAnswers,
+      previousPoints,
+      previousStreak,
     });
 
-    // Award session completion gems
-    const sessionReward = awardGems(user.id, REWARD_AMOUNTS.sessionComplete, 'Session completed!');
-    showRewardNotification(sessionReward);
-
-    // Check for streak milestone
-    const streakReward = checkStreak(user.id, previousStreak + 1);
-    if (streakReward) {
-      showRewardNotification(streakReward);
-    }
-
-    // Check for level up
-    const levelUpReward = checkLevelUp(user.id, previousPoints, rewards.points + correctAnswers * 10);
-    if (levelUpReward) {
-      showRewardNotification(levelUpReward);
-    }
-
-    // Check if this was from an invite
-    if (inviteCode) {
-      // Complete the invite by code
-      completeInviteByCode(inviteCode);
-      
-      // Award buddy challenge reward
-      const challengeReward = awardGems(user.id, REWARD_AMOUNTS.buddyChallenge, 'Challenge completed!');
-      showRewardNotification(challengeReward);
-      
-      // Track conversion
-      trackFunnelEvent('conversion', {
-        inviteCode,
-        sessionId: sessionId,
-        userId: user.id,
-      });
-      
-      // Show celebration
-      setShowConfetti(true);
-    }
-
     setShowResults(true);
+    
+    // Process invite completion in useEffect as well
+    if (inviteCode) {
+      setTimeout(() => {
+        // Complete the invite by code
+        completeInviteByCode(inviteCode);
+        
+        // Award buddy challenge reward
+        const challengeReward = awardGems(user.id, REWARD_AMOUNTS.buddyChallenge, 'Challenge completed!');
+        showRewardNotification(challengeReward);
+        
+        // Track conversion
+        trackFunnelEvent('conversion', {
+          inviteCode,
+          sessionId: sessionId,
+          userId: user.id,
+        });
+        
+        // Show celebration
+        setShowConfetti(true);
+      }, 100);
+    }
     
     // Redirect to results page after a short delay
     setTimeout(() => {
@@ -200,11 +312,18 @@ function PracticeSessionPageContent() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Reset reward processing flag when component unmounts or new session starts
+  useEffect(() => {
+    if (!pendingRewards) {
+      hasProcessedRewardsRef.current = false;
+    }
+  }, [pendingRewards]);
+
   if (showResults) {
-    const correctAnswers = mockQuestions.filter(
+    const correctAnswers = questions.filter(
       (q, i) => answers[i] === q.correctAnswer
     ).length;
-    const accuracy = Math.round((correctAnswers / mockQuestions.length) * 100);
+    const accuracy = Math.round((correctAnswers / questions.length) * 100);
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-teal-50 flex items-center justify-center">
@@ -213,7 +332,7 @@ function PracticeSessionPageContent() {
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Session Complete!</h2>
           <div className="text-5xl font-bold text-purple-600 mb-2">
-            {correctAnswers}/{mockQuestions.length}
+            {correctAnswers}/{questions.length}
           </div>
           <div className="text-2xl font-semibold text-gray-700 mb-6">
             {accuracy}% Accuracy
@@ -232,8 +351,8 @@ function PracticeSessionPageContent() {
     );
   }
 
-  const question = mockQuestions[currentQuestion];
-  const progress = ((currentQuestion + 1) / mockQuestions.length) * 100;
+  const question = questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-teal-50 py-8">
@@ -243,7 +362,7 @@ function PracticeSessionPageContent() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{subject} Practice</h1>
-              <p className="text-gray-600">Question {currentQuestion + 1} of {mockQuestions.length}</p>
+              <p className="text-gray-600">Question {currentQuestion + 1} of {questions.length}</p>
             </div>
             <div className="flex items-center gap-2 bg-red-50 px-4 py-2 rounded-lg border border-red-200">
               <ClockIcon className="w-5 h-5 text-red-600" />
@@ -329,7 +448,7 @@ function PracticeSessionPageContent() {
             disabled={selectedAnswer === null}
             className="flex-1 bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold py-4 px-6 rounded-xl hover:from-purple-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {currentQuestion === mockQuestions.length - 1 ? 'Submit' : 'Next'}
+              {currentQuestion === questions.length - 1 ? 'Submit' : 'Next'}
           </button>
         </div>
       </div>

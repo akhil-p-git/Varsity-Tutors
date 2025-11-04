@@ -52,7 +52,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 201,
         name: 'Emma Wilson',
-        avatar: '/avatars/user-1.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -60,7 +60,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 202,
         name: 'Noah Brown',
-        avatar: '/avatars/user-2.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Noah',
         isSpeaking: false,
         isMuted: true,
         isModerator: false,
@@ -68,7 +68,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 203,
         name: 'Sophia Lee',
-        avatar: '/avatars/user-3.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -76,7 +76,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 204,
         name: 'Liam Garcia',
-        avatar: '/avatars/user-4.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liam',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -84,7 +84,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 205,
         name: 'Olivia Martinez',
-        avatar: '/avatars/user-5.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Olivia',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -92,7 +92,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 206,
         name: 'Mason Davis',
-        avatar: '/avatars/user-6.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mason',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -100,7 +100,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 207,
         name: 'Isabella Anderson',
-        avatar: '/avatars/user-7.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Isabella',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -136,7 +136,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 301,
         name: 'James Taylor',
-        avatar: '/avatars/user-8.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
         isSpeaking: true,
         isMuted: false,
         isModerator: false,
@@ -144,7 +144,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 302,
         name: 'Charlotte Moore',
-        avatar: '/avatars/user-9.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlotte',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -152,7 +152,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 303,
         name: 'Benjamin White',
-        avatar: '/avatars/user-10.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Benjamin',
         isSpeaking: false,
         isMuted: true,
         isModerator: false,
@@ -160,7 +160,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 304,
         name: 'Amelia Harris',
-        avatar: '/avatars/user-11.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Amelia',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -168,7 +168,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 305,
         name: 'Lucas Clark',
-        avatar: '/avatars/user-12.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -176,7 +176,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 306,
         name: 'Harper Lewis',
-        avatar: '/avatars/user-13.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Harper',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -212,7 +212,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 401,
         name: 'Ava Walker',
-        avatar: '/avatars/user-14.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ava',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -220,7 +220,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 402,
         name: 'Ethan Hall',
-        avatar: '/avatars/user-15.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
         isSpeaking: true,
         isMuted: false,
         isModerator: false,
@@ -228,7 +228,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 403,
         name: 'Mia Young',
-        avatar: '/avatars/user-16.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mia',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -249,7 +249,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 501,
         name: 'Luna Adams',
-        avatar: '/avatars/user-17.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna',
         isSpeaking: false,
         isMuted: false,
         isModerator: true,
@@ -257,7 +257,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 502,
         name: 'Aiden Turner',
-        avatar: '/avatars/user-18.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aiden',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -265,7 +265,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 503,
         name: 'Zoe Parker',
-        avatar: '/avatars/user-19.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -273,7 +273,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 504,
         name: 'Jack Robinson',
-        avatar: '/avatars/user-20.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -281,7 +281,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 505,
         name: 'Lily Collins',
-        avatar: '/avatars/user-21.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lily',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -289,7 +289,7 @@ export const mockRooms: VoiceRoom[] = [
       {
         userId: 506,
         name: 'Henry Mitchell',
-        avatar: '/avatars/user-22.jpg',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Henry',
         isSpeaking: false,
         isMuted: false,
         isModerator: false,
@@ -303,7 +303,25 @@ export const mockRooms: VoiceRoom[] = [
 ];
 
 export function getRoomById(roomId: string): VoiceRoom | undefined {
-  return mockRooms.find(room => room.roomId === roomId);
+  // First check mock rooms
+  const mockRoom = mockRooms.find(room => room.roomId === roomId);
+  if (mockRoom) {
+    return mockRoom;
+  }
+  
+  // If not found, check the Zustand store (for dynamically added rooms)
+  if (typeof window !== 'undefined') {
+    try {
+      const { useStore } = require('../store');
+      const activeRooms = useStore.getState().activeRooms;
+      return activeRooms.find((room: VoiceRoom) => room.roomId === roomId);
+    } catch (error) {
+      // If store isn't available, return undefined
+      return undefined;
+    }
+  }
+  
+  return undefined;
 }
 
 export function getRoomsBySubject(subject: string): VoiceRoom[] {

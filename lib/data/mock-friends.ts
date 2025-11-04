@@ -4,7 +4,7 @@ export const mockFriends: Friend[] = [
   {
     id: 101,
     name: 'Jordan Kim',
-    avatar: '/avatars/friend-1.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jordan',
     isOnline: true,
     currentlyStudying: 'Algebra',
     streak: 7,
@@ -13,7 +13,7 @@ export const mockFriends: Friend[] = [
   {
     id: 102,
     name: 'Sam Patel',
-    avatar: '/avatars/friend-2.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sam',
     isOnline: true,
     currentlyStudying: 'Geometry',
     streak: 3,
@@ -22,7 +22,7 @@ export const mockFriends: Friend[] = [
   {
     id: 103,
     name: 'Alex Morgan',
-    avatar: '/avatars/friend-3.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AlexM',
     isOnline: false,
     currentlyStudying: null,
     streak: 5,
@@ -31,7 +31,7 @@ export const mockFriends: Friend[] = [
   {
     id: 104,
     name: 'Taylor Chen',
-    avatar: '/avatars/friend-4.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor',
     isOnline: true,
     currentlyStudying: 'Algebra',
     streak: 12,
@@ -40,7 +40,7 @@ export const mockFriends: Friend[] = [
   {
     id: 105,
     name: 'Riley Johnson',
-    avatar: '/avatars/friend-5.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Riley',
     isOnline: true,
     currentlyStudying: 'Calculus',
     streak: 9,
@@ -49,7 +49,7 @@ export const mockFriends: Friend[] = [
   {
     id: 106,
     name: 'Casey Williams',
-    avatar: '/avatars/friend-6.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Casey',
     isOnline: false,
     currentlyStudying: null,
     streak: 2,

@@ -40,13 +40,24 @@ export function awardGems(userId: number, amount: number, reason: string): Rewar
   };
 }
 
+// Track which streak milestones have been awarded to prevent duplicates
+const awardedStreaks = new Set<string>();
+
 /**
  * Check and award streak milestones
  */
 export function checkStreak(userId: number, currentStreak: number): RewardNotification | null {
+  const streakKey = `${userId}-${currentStreak}`;
+  
+  // Prevent duplicate awards
+  if (awardedStreaks.has(streakKey)) {
+    return null;
+  }
+  
   const store = useStore.getState();
   
   if (currentStreak === 7) {
+    awardedStreaks.add(streakKey);
     awardGems(userId, REWARD_AMOUNTS.streak7, '7 day streak milestone!');
     return {
       type: 'streak',
@@ -58,6 +69,7 @@ export function checkStreak(userId: number, currentStreak: number): RewardNotifi
   }
   
   if (currentStreak === 30) {
+    awardedStreaks.add(streakKey);
     awardGems(userId, REWARD_AMOUNTS.streak30, '30 day streak milestone!');
     return {
       type: 'streak',

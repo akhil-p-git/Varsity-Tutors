@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useStore } from '@/lib/store';
 import { getSessionById } from '@/lib/data/mock-sessions';
 import { getFriendsBySubject, getOnlineFriends } from '@/lib/data/mock-friends';
@@ -28,18 +28,39 @@ export default function SessionResultsPage() {
   const router = useRouter();
   const { user } = useAuth();
   const sessionId = params.id as string;
-  const [session, setSession] = useState(getSessionById(sessionId));
-  const { rewards, sendInvite, updateRewards } = useStore();
+  const { rewards, sendInvite, updateRewards, sessions } = useStore();
+  const [session, setSession] = useState(() => {
+    // First try to get from store (for dynamically added sessions)
+    const storeSession = sessions.find(s => s.sessionId === sessionId);
+    if (storeSession) return storeSession;
+    // Fall back to mock sessions
+    return getSessionById(sessionId);
+  });
   const [showConfetti, setShowConfetti] = useState(true);
   const [showBuddyChallenge, setShowBuddyChallenge] = useState(false);
+  const hasTrackedRef = useRef(false);
 
   const subjectFriends = session
     ? getFriendsBySubject(session.subject)
     : [];
   const onlineFriends = getOnlineFriends();
 
+  // Update session if it's added to store after mount
+  useEffect(() => {
+    const storeSession = sessions.find(s => s.sessionId === sessionId);
+    if (storeSession && (!session || session.sessionId !== storeSession.sessionId)) {
+      setSession(storeSession);
+    }
+  }, [sessions, sessionId, session]);
+
   useEffect(() => {
     if (!session) {
+      // Check store again before redirecting
+      const storeSession = sessions.find(s => s.sessionId === sessionId);
+      if (storeSession) {
+        setSession(storeSession);
+        return;
+      }
       toast.error('Session not found');
       router.push('/dashboard');
     } else {
@@ -47,7 +68,9 @@ export default function SessionResultsPage() {
       setTimeout(() => setShowConfetti(false), 3000);
 
       // Agent decision: Check if should trigger buddy challenge
-      if (user && session) {
+      // Only track once per session
+      if (user && session && !hasTrackedRef.current) {
+        hasTrackedRef.current = true;
         const accuracy = Math.round((session.correctAnswers / session.questionsAnswered) * 100);
         const decision = shouldTrigger(user.id, 'buddy_challenge', 'session_completed');
         const loopType = selectViralLoop('session_completed', {
@@ -65,7 +88,7 @@ export default function SessionResultsPage() {
             status: 'triggered',
           });
 
-          // Track funnel: session_completed
+          // Track funnel: session_completed (only once)
           trackFunnelEvent('session_completed', {
             sessionId: session.sessionId,
             score: accuracy,

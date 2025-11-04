@@ -15,6 +15,11 @@ interface AppState {
   currentRoom: VoiceRoom | null;
   voiceRoomAnalytics: VoiceRoomAnalytics;
   agentLogs: Array<{ timestamp: Date; agent: string; action: string; reason: string; status: string }>;
+  demoState: {
+    isPlaying: boolean;
+    currentStep: number;
+    narration: string;
+  } | null;
 
   // Actions
   addSession: (session: Session) => void;
@@ -35,6 +40,7 @@ interface AppState {
   toggleParticipantMute: (roomId: string, userId: number) => void;
   incrementVoiceRoomAnalytics: (key: keyof VoiceRoomAnalytics, value?: number) => void;
   addAgentLog: (log: { agent: string; action: string; reason: string; status: string }) => void;
+  setDemoState: (state: { isPlaying: boolean; currentStep: number; narration: string } | null) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -60,6 +66,7 @@ export const useStore = create<AppState>((set) => ({
     tutorDropins: 0,
   },
   agentLogs: [],
+  demoState: null,
 
   // Actions
   addSession: (session) =>
@@ -283,5 +290,8 @@ export const useStore = create<AppState>((set) => ({
         ...state.agentLogs,
       ].slice(0, 100), // Keep last 100 logs
     })),
+
+  setDemoState: (state) =>
+    set({ demoState: state }),
 }));
 

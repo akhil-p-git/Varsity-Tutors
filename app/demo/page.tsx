@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { useStore } from '@/lib/store';
@@ -25,16 +25,35 @@ type DemoStep = {
 export default function DemoPage() {
   const router = useRouter();
   const { login, user } = useAuth();
-  const { addSession, sendInvite, completeInviteByCode, updateRewards, rewards, addAgentLog } = useStore();
+  const { addSession, sendInvite, completeInviteByCode, updateRewards, rewards, addAgentLog, demoState, setDemoState } = useStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [narration, setNarration] = useState('');
   const [showNarration, setShowNarration] = useState(true);
+  const isPlayingRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Reset demo state on mount
-    resetAgentTracking();
-  }, []);
+    // Reset demo state on mount (only if no demo is running)
+    if (!demoState) {
+      resetAgentTracking();
+    }
+    
+    // Sync with global demo state
+    if (demoState) {
+      setIsPlaying(demoState.isPlaying);
+      setCurrentStep(demoState.currentStep);
+      setNarration(demoState.narration);
+      isPlayingRef.current = demoState.isPlaying;
+    }
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [demoState]);
 
   const steps: DemoStep[] = [
     {
@@ -61,11 +80,12 @@ export default function DemoPage() {
       id: 3,
       name: 'Navigate to Practice Session',
       action: () => {
-        router.push('/session/practice?subject=Algebra');
-        setNarration('Starting Algebra practice session...');
+        // Skip showing practice UI - just auto-complete immediately
+        // This prevents showing the same questions multiple times
+        setNarration('Preparing practice session...');
       },
-      narration: 'Starting Algebra practice session...',
-      delay: 2000,
+      narration: 'Preparing practice session...',
+      delay: 1000,
     },
     {
       id: 4,
@@ -293,22 +313,48 @@ export default function DemoPage() {
 
   const startDemo = () => {
     setIsPlaying(true);
+    isPlayingRef.current = true;
+    // Store demo state in global store so it persists across route changes
+    setDemoState({
+      isPlaying: true,
+      currentStep: 0,
+      narration: steps[0]?.narration || '',
+    });
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    // Start the demo execution
     executeStep(0);
   };
 
   const executeStep = (stepIndex: number) => {
     if (stepIndex >= steps.length) {
       setIsPlaying(false);
+      isPlayingRef.current = false;
+      setDemoState(null);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       toast.success('Demo complete! 🎉');
       return;
     }
 
     const step = steps[stepIndex];
     setCurrentStep(stepIndex);
+    
+    // Update global demo state
+    setDemoState({
+      isPlaying: true,
+      currentStep: stepIndex,
+      narration: step.narration,
+    });
+    
     step.action();
 
-    setTimeout(() => {
-      if (isPlaying) {
+    // Use ref to check current playing state
+    timeoutRef.current = setTimeout(() => {
+      if (isPlayingRef.current) {
         executeStep(stepIndex + 1);
       }
     }, step.delay);
@@ -316,6 +362,30 @@ export default function DemoPage() {
 
   const pauseDemo = () => {
     setIsPlaying(false);
+    isPlayingRef.current = false;
+    // Preserve current state instead of clearing it
+    if (demoState) {
+      setDemoState({
+        ...demoState,
+        isPlaying: false,
+      });
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  const resumeDemo = () => {
+    if (!demoState) return;
+    setIsPlaying(true);
+    isPlayingRef.current = true;
+    setDemoState({
+      ...demoState,
+      isPlaying: true,
+    });
+    // Resume from current step
+    executeStep(demoState.currentStep);
   };
 
   const skipToStep = (stepIndex: number) => {
@@ -349,13 +419,23 @@ export default function DemoPage() {
 
         <div className="space-y-3">
           {!isPlaying ? (
-            <button
-              onClick={startDemo}
-              className="w-full bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2"
-            >
-              <PlayIcon className="w-5 h-5" />
-              Start Demo
-            </button>
+            demoState && demoState.currentStep > 0 ? (
+              <button
+                onClick={resumeDemo}
+                className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2"
+              >
+                <PlayIcon className="w-5 h-5" />
+                Resume Demo
+              </button>
+            ) : (
+              <button
+                onClick={startDemo}
+                className="w-full bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2"
+              >
+                <PlayIcon className="w-5 h-5" />
+                Start Demo
+              </button>
+            )
           ) : (
             <button
               onClick={pauseDemo}

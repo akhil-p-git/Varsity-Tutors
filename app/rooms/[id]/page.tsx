@@ -47,6 +47,19 @@ export default function VoiceRoomPage() {
 
     // Join room if not already joined
     if (!room) {
+      // First check activeRooms in store (for dynamically added rooms)
+      const foundRoomInStore = activeRooms.find(r => r.roomId === roomId);
+      if (foundRoomInStore) {
+        setRoom(foundRoomInStore);
+        // Ensure user is in the room
+        const userInRoom = foundRoomInStore.participants.some(p => p.userId === user.id);
+        if (!userInRoom && user) {
+          voiceService.joinRoom(foundRoomInStore.roomId, user.id, user.name, user.avatar);
+        }
+        return;
+      }
+      
+      // Fall back to mock rooms
       const foundRoom = getRoomById(roomId);
       if (foundRoom) {
         voiceService.joinRoom(roomId, user.id, user.name, user.avatar || '/avatars/default.jpg');
@@ -56,8 +69,18 @@ export default function VoiceRoomPage() {
         const joinReward = awardGems(user.id, REWARD_AMOUNTS.voiceRoomJoin, 'Voice room joined!');
         showRewardNotification(joinReward);
       } else {
-        toast.error('Room not found');
-        router.push('/rooms');
+        // Check store one more time in case room was just added
+        const storeRoom = activeRooms.find(r => r.roomId === roomId);
+        if (storeRoom) {
+          setRoom(storeRoom);
+          const userInRoom = storeRoom.participants.some(p => p.userId === user.id);
+          if (!userInRoom && user) {
+            voiceService.joinRoom(storeRoom.roomId, user.id, user.name, user.avatar);
+          }
+        } else {
+          toast.error('Room not found');
+          router.push('/rooms');
+        }
       }
     }
 

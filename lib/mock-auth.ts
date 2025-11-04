@@ -13,20 +13,20 @@ export const mockUsers: User[] = [
     id: 1,
     name: 'Alex Chen',
     role: 'student',
-    avatar: '/avatars/student.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
     subject: 'Algebra',
   },
   {
     id: 2,
     name: 'Maria Rodriguez',
     role: 'parent',
-    avatar: '/avatars/parent.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
   },
   {
     id: 3,
     name: 'Dr. Smith',
     role: 'tutor',
-    avatar: '/avatars/tutor.jpg',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DrSmith',
     subject: 'Algebra',
   },
 ];

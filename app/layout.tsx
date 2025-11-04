@@ -6,6 +6,8 @@ import { StudyPresence } from "@/app/components/StudyPresence";
 import { Navigation } from "@/app/components/Navigation";
 import { AgentDebugger } from "@/app/components/AgentDebugger";
 import { DemoControls } from "@/app/components/DemoControls";
+import { DemoRunner } from "@/app/components/DemoRunner";
+import { DemoPlaybackControls } from "@/app/components/DemoPlaybackControls";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,6 +34,8 @@ export default function RootLayout({
           {children}
           <StudyPresence />
           <AgentDebugger />
+          <DemoRunner />
+          <DemoPlaybackControls />
           {process.env.NODE_ENV === 'development' && <DemoControls />}
           <Toaster position="top-center" richColors />
         </AuthProvider>

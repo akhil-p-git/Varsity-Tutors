@@ -31,6 +31,24 @@ export const mockSessions: Session[] = [
 ];
 
 export function getSessionById(id: string): Session | undefined {
-  return mockSessions.find(session => session.sessionId === id);
+  // First check mock sessions
+  const mockSession = mockSessions.find(session => session.sessionId === id);
+  if (mockSession) {
+    return mockSession;
+  }
+  
+  // If not found, check the Zustand store (for dynamically added sessions)
+  if (typeof window !== 'undefined') {
+    try {
+      const { useStore } = require('../store');
+      const sessions = useStore.getState().sessions;
+      return sessions.find((session: Session) => session.sessionId === id);
+    } catch (error) {
+      // If store isn't available, return undefined
+      return undefined;
+    }
+  }
+  
+  return undefined;
 }
 
