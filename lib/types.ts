@@ -92,3 +92,65 @@ export interface LeaderboardEntry {
   streak: number;
   level: number;
 }
+
+export interface Tutor {
+  id: number;
+  name: string;
+  avatar: string;
+  subjects: string[];
+  specialties: string[];
+  teachingStyle: string;
+  bio: string;
+  
+  // Performance metrics
+  successRate: number; // 0-100
+  studentsHelped: number;
+  avgImprovement: number; // percentage points
+  rating: number; // 0-5
+  totalSessions: number;
+  
+  // Availability
+  availability: 'available' | 'busy' | 'offline';
+  nextAvailable: string | null; // e.g., "10 minutes"
+  responseTime: string; // e.g., "< 5 min"
+  
+  // Trending
+  trendingScore: number; // 0-100
+  weeklyBookings: number;
+  
+  // Recent wins (for social proof)
+  recentWins: string[];
+  
+  // Matching criteria
+  learningStyles: string[]; // e.g., ['visual', 'hands-on', 'patient']
+  studentTypes: string[]; // e.g., ['struggling', 'advanced', 'test-prep']
+}
+
+export interface TutorMatchResult {
+  tutorId: number;
+  tutor: Tutor;
+  matchScore: number; // 0-100
+  reasoning: string;
+  expectedImprovement: number; // percentage points
+  confidence: number; // 0-1
+  alternativeTutors: Array<{
+    tutorId: number;
+    tutor: Tutor;
+    matchScore: number;
+    reason: string;
+  }>;
+}
+
+export interface TutorSession {
+  id: string;
+  tutorId: number;
+  studentId: number;
+  subject: string;
+  startTime: Date;
+  endTime: Date;
+  preScore: number;
+  postScore: number;
+  improvement: number;
+  studentSatisfaction: number; // 1-5
+  topics: string[];
+}

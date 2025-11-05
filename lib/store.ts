@@ -1,8 +1,10 @@
 import { create } from 'zustand';
-import { Session, Friend, Invite, Rewards, Analytics, VoiceRoom, VoiceRoomAnalytics, RoomParticipant } from './types';
+import { Session, Friend, Invite, Rewards, Analytics, VoiceRoom, VoiceRoomAnalytics, RoomParticipant, Tutor, TutorSession, TutorMatchResult } from './types';
 import { mockSessions } from './data/mock-sessions';
 import { mockFriends } from './data/mock-friends';
 import { mockRooms } from './data/mock-rooms';
+import { mockTutors } from './data/mock-tutors';
+import { mockTutorSessions } from './data/mock-tutor-sessions';
 
 interface AppState {
   // State
@@ -20,6 +22,14 @@ interface AppState {
     currentStep: number;
     narration: string;
   } | null;
+  tutors: Tutor[];
+  tutorSessions: TutorSession[];
+  recommendedTutor: TutorMatchResult | null;
+  tutorAnalytics: {
+    totalSessions: number;
+    avgImprovement: number;
+    topTutors: Tutor[];
+  };
 
   // Actions
   addSession: (session: Session) => void;
@@ -41,6 +51,10 @@ interface AppState {
   incrementVoiceRoomAnalytics: (key: keyof VoiceRoomAnalytics, value?: number) => void;
   addAgentLog: (log: { agent: string; action: string; reason: string; status: string }) => void;
   setDemoState: (state: { isPlaying: boolean; currentStep: number; narration: string } | null) => void;
+  
+  // Tutor Actions
+  setRecommendedTutor: (match: TutorMatchResult | null) => void;
+  addTutorSession: (session: TutorSession) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -67,6 +81,17 @@ export const useStore = create<AppState>((set) => ({
   },
   agentLogs: [],
   demoState: null,
+  tutors: mockTutors,
+  tutorSessions: mockTutorSessions,
+  recommendedTutor: null,
+  tutorAnalytics: (() => {
+    const totalSessions = mockTutorSessions.length;
+    const avgImprovement = mockTutorSessions.length > 0
+      ? mockTutorSessions.reduce((sum, session) => sum + session.improvement, 0) / mockTutorSessions.length
+      : 0;
+    const topTutors = [...mockTutors].sort((a, b) => b.successRate - a.successRate).slice(0, 3);
+    return { totalSessions, avgImprovement, topTutors };
+  })(),
 
   // Actions
   addSession: (session) =>
@@ -293,5 +318,25 @@ export const useStore = create<AppState>((set) => ({
 
   setDemoState: (state) =>
     set({ demoState: state }),
+  
+  // Tutor Actions
+  setRecommendedTutor: (match) =>
+    set({ recommendedTutor: match }),
+  
+  addTutorSession: (session) =>
+    set((state) => {
+      const newSessions = [session, ...state.tutorSessions];
+      const avgImprovement = newSessions.length > 0
+        ? newSessions.reduce((sum, s) => sum + s.improvement, 0) / newSessions.length
+        : 0;
+      return {
+        tutorSessions: newSessions,
+        tutorAnalytics: {
+          ...state.tutorAnalytics,
+          totalSessions: newSessions.length,
+          avgImprovement,
+        },
+      };
+    }),
 }));
 
