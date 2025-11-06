@@ -154,3 +154,17 @@ export interface TutorSession {
   studentSatisfaction: number; // 1-5
   topics: string[];
 }
+
+export type ActivityNotificationType = 
+  | 'ai_analysis'      // AI Analysis (brain icon, blue)
+  | 'orchestration'    // Orchestration (network icon, purple)
+  | 'personalization'  // Personalization (sparkles icon, pink)
+  | 'viral_trigger'    // Viral Loop Trigger (rocket icon, green)
+  | 'session_event';   // Session Events (check icon, gray)
+
+export interface ActivityNotification {
+  id: string;
+  type: ActivityNotificationType;
+  message: string;
+  timestamp: Date;
+}

@@ -23,6 +23,8 @@ import { selectViralLoop, shouldTrigger } from '@/lib/agents/orchestrator';
 import { logAgentDecision } from '@/app/components/AgentDebugger';
 import { trackFunnelEvent } from '@/lib/smart-links';
 import { SessionInsights } from '@/lib/ai/openai-service';
+import { ShareButton } from '@/components/share-button';
+import { generateAchievementShare } from '@/lib/social-share';
 
 export default function SessionResultsPage() {
   const params = useParams();
@@ -203,9 +205,22 @@ export default function SessionResultsPage() {
                 <p className="text-gray-600">Session completed!</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-4xl font-bold text-purple-600">{accuracy}%</div>
-              <div className="text-sm text-gray-600">Accuracy</div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-4xl font-bold text-purple-600">{accuracy}%</div>
+                <div className="text-sm text-gray-600">Accuracy</div>
+              </div>
+              {accuracy >= 80 && (
+                <ShareButton
+                  content={generateAchievementShare({
+                    type: 'high_score',
+                    score: accuracy,
+                    subject: session.subject,
+                  })}
+                  variant="secondary"
+                  size="md"
+                />
+              )}
             </div>
           </div>
 

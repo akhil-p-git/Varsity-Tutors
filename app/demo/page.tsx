@@ -405,67 +405,49 @@ export default function DemoPage() {
         </div>
       )}
 
-      {/* Demo Controls */}
-      <div className="fixed top-4 right-4 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">Demo Controls</h3>
-          <button
-            onClick={() => setShowNarration(!showNarration)}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            {showNarration ? 'Hide' : 'Show'} Narration
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {!isPlaying ? (
-            demoState && demoState.currentStep > 0 ? (
-              <button
-                onClick={resumeDemo}
-                className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2"
-              >
-                <PlayIcon className="w-5 h-5" />
-                Resume Demo
-              </button>
-            ) : (
-              <button
-                onClick={startDemo}
-                className="w-full bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2"
-              >
-                <PlayIcon className="w-5 h-5" />
-                Start Demo
-              </button>
-            )
-          ) : (
+      {/* Demo Controls - Hide when demo is running, use DemoPlaybackControls instead */}
+      {!demoState && (
+        <div className="fixed top-4 right-4 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-gray-900">Demo Controls</h3>
             <button
-              onClick={pauseDemo}
-              className="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+              onClick={() => setShowNarration(!showNarration)}
+              className="text-sm text-gray-600 hover:text-gray-900"
             >
-              <PauseIcon className="w-5 h-5" />
-              Pause Demo
+              {showNarration ? 'Hide' : 'Show'} Narration
             </button>
-          )}
+          </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm font-semibold text-gray-700 mb-2">Jump to Step:</div>
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {steps.map((step, index) => (
-                <button
-                  key={step.id}
-                  onClick={() => skipToStep(index)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    currentStep === index
-                      ? 'bg-purple-100 text-purple-700 font-semibold'
-                      : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {index + 1}. {step.name}
-                </button>
-              ))}
+          <div className="space-y-3">
+            <button
+              onClick={startDemo}
+              className="w-full bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2"
+            >
+              <PlayIcon className="w-5 h-5" />
+              Start Demo
+            </button>
+
+            <div className="border-t border-gray-200 pt-3">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Jump to Step:</div>
+              <div className="max-h-48 overflow-y-auto space-y-1">
+                {steps.map((step, index) => (
+                  <button
+                    key={step.id}
+                    onClick={() => skipToStep(index)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      currentStep === index
+                        ? 'bg-purple-100 text-purple-700 font-semibold'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {index + 1}. {step.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Progress Indicator */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 px-6 py-3">

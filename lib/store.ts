@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Session, Friend, Invite, Rewards, Analytics, VoiceRoom, VoiceRoomAnalytics, RoomParticipant, Tutor, TutorSession, TutorMatchResult } from './types';
+import { Session, Friend, Invite, Rewards, Analytics, VoiceRoom, VoiceRoomAnalytics, RoomParticipant, Tutor, TutorSession, TutorMatchResult, ActivityNotification } from './types';
 import { mockSessions } from './data/mock-sessions';
 import { mockFriends } from './data/mock-friends';
 import { mockRooms } from './data/mock-rooms';
@@ -30,6 +30,7 @@ interface AppState {
     avgImprovement: number;
     topTutors: Tutor[];
   };
+  activityNotifications: ActivityNotification[];
 
   // Actions
   addSession: (session: Session) => void;
@@ -55,6 +56,10 @@ interface AppState {
   // Tutor Actions
   setRecommendedTutor: (match: TutorMatchResult | null) => void;
   addTutorSession: (session: TutorSession) => void;
+  
+  // Activity Notifications
+  addActivityNotification: (notification: Omit<ActivityNotification, 'id' | 'timestamp'>) => void;
+  removeActivityNotification: (id: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -92,6 +97,7 @@ export const useStore = create<AppState>((set) => ({
     const topTutors = [...mockTutors].sort((a, b) => b.successRate - a.successRate).slice(0, 3);
     return { totalSessions, avgImprovement, topTutors };
   })(),
+  activityNotifications: [],
 
   // Actions
   addSession: (session) =>
@@ -338,5 +344,27 @@ export const useStore = create<AppState>((set) => ({
         },
       };
     }),
+  
+  // Activity Notifications
+  addActivityNotification: (notification) =>
+    set((state) => {
+      const newNotification: ActivityNotification = {
+        ...notification,
+        id: `activity-${Date.now()}-${Math.random()}`,
+        timestamp: new Date(),
+      };
+      
+      // Keep max 5 notifications, remove oldest if needed
+      const updatedNotifications = [newNotification, ...state.activityNotifications].slice(0, 5);
+      
+      return {
+        activityNotifications: updatedNotifications,
+      };
+    }),
+  
+  removeActivityNotification: (id) =>
+    set((state) => ({
+      activityNotifications: state.activityNotifications.filter(n => n.id !== id),
+    })),
 }));
 

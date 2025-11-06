@@ -8,6 +8,9 @@ import { calculateLevelProgress } from '@/lib/rewards';
 import { PresenceFeed } from '@/app/components/PresenceFeed';
 import { Leaderboard } from '@/app/components/Leaderboard';
 import { StudyPresence } from '@/app/components/StudyPresence';
+import { TutorMatcher } from '@/components/tutor-matcher';
+import { ShareButton } from '@/components/share-button';
+import { generateAchievementShare } from '@/lib/social-share';
 import { toast } from 'sonner';
 import { FireIcon, SparklesIcon, UserPlusIcon } from '@heroicons/react/24/solid';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
@@ -44,7 +47,7 @@ export default function DashboardPage() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-purple-600 to-teal-500 rounded-2xl shadow-2xl p-8 mb-6 text-white">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
+            <div className="flex-1">
               <h1 className="text-4xl font-bold mb-2">Welcome back, {user.name}!</h1>
               <div className="flex items-center gap-6 mt-4">
                 <div className="flex items-center gap-2">
@@ -55,6 +58,16 @@ export default function DashboardPage() {
                   <span className="text-3xl">💎</span>
                   <span className="text-2xl font-bold">{rewards.gems} gems</span>
                 </div>
+                {rewards.streak >= 3 && (
+                  <ShareButton
+                    content={generateAchievementShare({
+                      type: 'streak',
+                      streak: rewards.streak,
+                    })}
+                    variant="secondary"
+                    size="sm"
+                  />
+                )}
               </div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
@@ -95,6 +108,11 @@ export default function DashboardPage() {
                 Start Practice Session
               </button>
             </div>
+
+            {/* AI Tutor Matching */}
+            {user.role === 'student' && (
+              <TutorMatcher />
+            )}
 
             {/* Active Challenges */}
             {pendingInvites.length > 0 ? (

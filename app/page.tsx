@@ -34,87 +34,88 @@ export default function Home() {
         </div>
 
         {/* Login Cards */}
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-          {/* Student Login */}
-          <button
-            onClick={() => handleLogin(1, 'Student')}
-            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 hover:border-purple-300 hover:-translate-y-2"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-purple-200 transition-colors">
-                <BookOpenIcon className="w-10 h-10 text-purple-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Student</h2>
-              <p className="text-gray-600 mb-6">
-                Access your courses, connect with tutors, and track your progress
-              </p>
-              <div className="w-full bg-purple-50 rounded-lg p-4 text-left">
-                <p className="text-sm text-gray-700 mb-1">
-                  <span className="font-semibold">Name:</span> {mockUsers[0].name}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Subject:</span> {mockUsers[0].subject}
-                </p>
-              </div>
-              <div className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold group-hover:bg-purple-700 transition-colors">
-                Login as Student
-              </div>
-            </div>
-          </button>
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Select a User to Login</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {mockUsers.map((user) => {
+              const getRoleIcon = (role: string) => {
+                switch (role) {
+                  case 'student':
+                    return <BookOpenIcon className="w-8 h-8 text-purple-600" />;
+                  case 'parent':
+                    return <UserGroupIcon className="w-8 h-8 text-teal-600" />;
+                  case 'tutor':
+                    return <AcademicCapIcon className="w-8 h-8 text-purple-600" />;
+                  default:
+                    return <BookOpenIcon className="w-8 h-8 text-purple-600" />;
+                }
+              };
 
-          {/* Parent Login */}
-          <button
-            onClick={() => handleLogin(2, 'Parent')}
-            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 hover:border-teal-300 hover:-translate-y-2"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-teal-200 transition-colors">
-                <UserGroupIcon className="w-10 h-10 text-teal-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent</h2>
-              <p className="text-gray-600 mb-6">
-                Monitor your child's progress and stay connected with their tutors
-              </p>
-              <div className="w-full bg-teal-50 rounded-lg p-4 text-left">
-                <p className="text-sm text-gray-700 mb-1">
-                  <span className="font-semibold">Name:</span> {mockUsers[1].name}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Role:</span> Parent Dashboard
-                </p>
-              </div>
-              <div className="mt-6 px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold group-hover:bg-teal-700 transition-colors">
-                Login as Parent
-              </div>
-            </div>
-          </button>
+              const getRoleColors = (role: string) => {
+                switch (role) {
+                  case 'student':
+                    return {
+                      border: 'hover:border-purple-300',
+                      bg: 'bg-purple-100 group-hover:bg-purple-200',
+                      badge: 'bg-purple-100 text-purple-700',
+                      button: 'bg-purple-600 group-hover:bg-purple-700'
+                    };
+                  case 'parent':
+                    return {
+                      border: 'hover:border-teal-300',
+                      bg: 'bg-teal-100 group-hover:bg-teal-200',
+                      badge: 'bg-teal-100 text-teal-700',
+                      button: 'bg-teal-600 group-hover:bg-teal-700'
+                    };
+                  case 'tutor':
+                    return {
+                      border: 'hover:border-indigo-300',
+                      bg: 'bg-indigo-100 group-hover:bg-indigo-200',
+                      badge: 'bg-indigo-100 text-indigo-700',
+                      button: 'bg-indigo-600 group-hover:bg-indigo-700'
+                    };
+                  default:
+                    return {
+                      border: 'hover:border-purple-300',
+                      bg: 'bg-purple-100 group-hover:bg-purple-200',
+                      badge: 'bg-purple-100 text-purple-700',
+                      button: 'bg-purple-600 group-hover:bg-purple-700'
+                    };
+                }
+              };
 
-          {/* Tutor Login */}
-          <button
-            onClick={() => handleLogin(3, 'Tutor')}
-            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 hover:border-purple-300 hover:-translate-y-2"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-teal-100 rounded-full flex items-center justify-center mb-6 group-hover:from-purple-200 group-hover:to-teal-200 transition-colors">
-                <AcademicCapIcon className="w-10 h-10 text-purple-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tutor</h2>
-              <p className="text-gray-600 mb-6">
-                Manage your students, schedule sessions, and track learning outcomes
-              </p>
-              <div className="w-full bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg p-4 text-left">
-                <p className="text-sm text-gray-700 mb-1">
-                  <span className="font-semibold">Name:</span> {mockUsers[2].name}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Subject:</span> {mockUsers[2].subject}
-                </p>
-              </div>
-              <div className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-teal-600 text-white rounded-lg font-semibold group-hover:from-purple-700 group-hover:to-teal-700 transition-colors">
-                Login as Tutor
-              </div>
-            </div>
-          </button>
+              const colors = getRoleColors(user.role);
+
+              return (
+                <button
+                  key={user.id}
+                  onClick={() => handleLogin(user.id, user.role)}
+                  className={`group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 ${colors.border} hover:-translate-y-1`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className={`w-16 h-16 ${colors.bg} rounded-full flex items-center justify-center mb-4 transition-colors`}>
+                      {getRoleIcon(user.role)}
+                    </div>
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-16 h-16 rounded-full mb-3 border-2 border-gray-200"
+                    />
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">{user.name}</h3>
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${colors.badge} mb-3 capitalize`}>
+                      {user.role}
+                    </span>
+                    {user.subject && (
+                      <p className="text-sm text-gray-600 mb-3">{user.subject}</p>
+                    )}
+                    <div className={`mt-auto w-full px-4 py-2 ${colors.button} text-white text-sm rounded-lg font-semibold transition-colors`}>
+                      Login
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Features Section */}
@@ -144,8 +145,29 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Auth Actions */}
+        <div className="max-w-4xl mx-auto mt-16 mb-8 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-6 inline-block border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">New to Varsity Tutors?</h3>
+            <div className="flex gap-4">
+              <a
+                href="/register"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all"
+              >
+                Create Account
+              </a>
+              <a
+                href="/login"
+                className="px-6 py-3 bg-white text-purple-600 font-bold rounded-lg border-2 border-purple-600 hover:bg-purple-50 transition-all"
+              >
+                Login
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Demo Flow Button */}
-        <div className="max-w-4xl mx-auto mt-16 mb-16 text-center">
+        <div className="max-w-4xl mx-auto mt-8 mb-16 text-center">
           <a
             href="/demo"
             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-teal-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-lg"
