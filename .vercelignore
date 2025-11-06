@@ -1,0 +1,16 @@
+# Prisma database (don't upload local SQLite file)
+prisma/dev.db
+prisma/dev.db-journal
+
+# Development files
+.env.local
+node_modules
+.next
+
+# Documentation
+*.md
+!README.md
+
+# Git
+.git
+.gitignore

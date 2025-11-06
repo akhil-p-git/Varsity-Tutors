@@ -3,9 +3,10 @@ import OpenAI from 'openai';
 import { mockTutors } from '@/lib/data/mock-tutors';
 import { TutorMatchResult } from '@/lib/types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Only initialize OpenAI if API key is available
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 export async function POST(request: NextRequest) {
   // Read body once at the beginning
@@ -86,6 +87,11 @@ Analyze the student's profile, performance patterns, and learning needs. Then:
 }
 
 Respond ONLY with valid JSON. Be specific and confident in your recommendations.`;
+
+    // Skip AI if not configured
+    if (!openai) {
+      throw new Error('OpenAI not configured');
+    }
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
