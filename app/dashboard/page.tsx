@@ -90,8 +90,12 @@ export default function DashboardPage() {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Presence Feed - Left Column (60%) */}
-          <div className="lg:col-span-2">
+          {/* Left Column (60%) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Leaderboard */}
+            <Leaderboard />
+            
+            {/* Presence Feed */}
             <PresenceFeed />
           </div>
 
@@ -198,11 +202,6 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Leaderboard Section */}
-        <div className="mb-6">
-          <Leaderboard />
         </div>
       </div>
     </div>
